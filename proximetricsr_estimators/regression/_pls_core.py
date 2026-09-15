@@ -51,6 +51,21 @@ def fit_pls_like(
     n_samples, n_features = X.shape
     ncomp = n_components
 
+    # A deterministic upfront check rather than relying on numpy to detect
+    # near-singularity later: np.linalg.inv() only raises on an *exactly*
+    # singular matrix, so ncomp > min(n_samples, n_features) reliably produces
+    # silently nonsensical (not NaN, not an error) coefficients instead of
+    # failing -- verified: requesting more components than features gave
+    # coefficients ~100x the true scale with no warning or error at all.
+    if ncomp > min(n_samples, n_features):
+        raise ValueError(
+            f"n_components={ncomp} exceeds min(n_samples, n_features)="
+            f"{min(n_samples, n_features)} ({n_samples} samples, {n_features} "
+            "features). Requesting more components than that produces numerically "
+            "meaningless coefficients rather than a clear failure, so this is "
+            "checked upfront."
+        )
+
     y_mean = float(y.mean())
     y_centered = y - y_mean
     x_mean = X.mean(axis=0)
@@ -63,6 +78,14 @@ def fit_pls_like(
 
     for i in range(ncomp):
         w = weight_fn(X_deflated, y_centered)
+        if not np.any(w):
+            raise ValueError(
+                f"Component {i + 1} of {ncomp} has an all-zero weight vector -- "
+                "there is not enough independent information left in X (relative "
+                "to n_components and, for XLS, min_w/max_w) to fit this many "
+                "components. Try fewer n_components or, for XLS, a narrower "
+                "min_w/max_w window relative to the number of features."
+            )
         t = X_deflated @ w
         tt = t @ t
         q = (y_centered @ t) / tt
@@ -75,7 +98,16 @@ def fit_pls_like(
 
         X_deflated = X_deflated - np.outer(t, p)
 
-    projection_m = np.linalg.inv(weights @ x_loadings.T) @ weights
+    try:
+        projection_m = np.linalg.inv(weights @ x_loadings.T) @ weights
+    except np.linalg.LinAlgError as exc:
+        raise ValueError(
+            f"Could not fit {ncomp} component(s): the weights/loadings matrix is "
+            "singular, meaning the requested components are not all linearly "
+            "independent for this data. This usually means n_components is too "
+            "large relative to the number of features (and, for XLS, the "
+            "min_w/max_w window) -- try fewer n_components."
+        ) from exc
     coef_path = np.cumsum(projection_m * y_loadings[:, None], axis=0)
 
     if type == "nwp":

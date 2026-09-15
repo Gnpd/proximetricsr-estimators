@@ -32,6 +32,17 @@ def test_compliance_proximetrics_pls():
     check_estimator(ProximetricsPLS())
 
 
+def test_clear_error_on_too_many_components():
+    """n_components larger than min(n_samples, n_features) is checked upfront
+    (see _pls_core.py::fit_pls_like -- numpy's inv() does not reliably raise on
+    the resulting near-singular matrix, it silently returns numerically
+    meaningless coefficients instead)."""
+    X, y = _make_data(n_samples=30, n_features=5, seed=4)
+    model = ProximetricsPLS(n_components=8, type="standard")
+    with pytest.raises(ValueError, match="n_components.*exceeds"):
+        model.fit(X, y)
+
+
 @pytest.mark.parametrize("type_", ["standard", "modified", "nwp"])
 def test_predict_matches_manual_affine_computation(type_):
     X, y = _make_data()

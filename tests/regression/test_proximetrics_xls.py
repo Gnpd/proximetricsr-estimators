@@ -85,6 +85,27 @@ def test_modified_and_nwp_predict_identically():
     )
 
 
+def test_clear_error_on_degenerate_window():
+    """min_w larger than n_features - 1: no column has any valid j at all, so
+    every weight vector is all-zero -- must raise a clear ValueError, not a
+    raw numpy LinAlgError or silently return NaNs."""
+    X, y = _make_data(n_samples=30, n_features=8, seed=2)
+    model = ProximetricsXLS(n_components=1, type="modified", min_w=8, max_w=10)
+    with pytest.raises(ValueError, match="all-zero weight vector"):
+        model.fit(X, y)
+
+
+def test_clear_error_on_too_many_components():
+    """n_components larger than min(n_samples, n_features) is checked upfront
+    (numpy's inv() does not reliably raise on the resulting near-singular
+    matrix -- verified separately that it instead silently returns numerically
+    meaningless coefficients)."""
+    X, y = _make_data(n_samples=30, n_features=5, seed=4)
+    model = ProximetricsXLS(n_components=8, type="modified", min_w=1, max_w=2)
+    with pytest.raises(ValueError, match="n_components.*exceeds"):
+        model.fit(X, y)
+
+
 def test_window_overhanging_boundary_does_not_crash():
     """min_w/max_w close to n_features means some columns have no valid j in
     range -- must not error or silently produce NaNs."""
