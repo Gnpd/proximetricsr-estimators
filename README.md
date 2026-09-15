@@ -8,6 +8,15 @@ Python objects.
 It follows the same discovery convention scikit-learn uses, so both can be registered
 together with [openmodels](https://github.com/Gnpd/openmodels):
 
+> **Note:** producing `exported_from_R.json` requires `export_sklearn_model()`,
+> which isn't in released proximetricsR yet — it's on an in-progress branch,
+> [`feat/openmodels-interop`](https://github.com/Gnpd/proximetricsR/tree/feat/openmodels-interop).
+
+Reconstructing a full pipeline also needs [`chemotools`](https://github.com/paucablop/chemotools)
+installed (`pip install chemotools`) — every preprocessing step in an exported
+model maps to a chemotools estimator; only the final regression step is
+proximetricsr_estimators' own.
+
 ```python
 from openmodels import SerializationManager, SklearnSerializer
 from chemotools.utils.discovery import all_estimators as chemotools_estimators
@@ -58,6 +67,6 @@ pip install -e .
 
 ```bash
 pip install -e .
-pip install pytest openmodels
+pip install pytest openmodels chemotools
 pytest
 ```
