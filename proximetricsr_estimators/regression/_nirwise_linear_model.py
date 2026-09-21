@@ -88,8 +88,19 @@ class NIRWiseLinearModel(RegressorMixin, BaseEstimator):
     n_features_in_ : int
         Number of spectral variables seen during fit.
 
-    feature_names_in_ : ndarray of shape (n_features_in_,)
-        Names (e.g. wavelengths) of the spectral variables, when available.
+    wavenumbers_ : ndarray of shape (n_features_in_,), optional
+        The wavelength/wavenumber grid the coefficients correspond to
+        (proximetricsR's final processed grid). Provenance only - set when the model
+        is reconstructed from an R export, not by ``fit()``, and not read by
+        ``predict()``.
+
+        Deliberately *not* stored as scikit-learn's ``feature_names_in_``. Inside an
+        exported pipeline the model step always receives the output of the preceding
+        chemotools transformer, so that attribute can never be satisfied: with array
+        input it warns on every ``predict()``, and under ``set_output("pandas")`` the
+        upstream transformer relabels the columns ``"x0"``, ``"x1"``, ..., which then
+        mismatch and raise ``ValueError``. Callers wanting the grid as strings can use
+        ``model.wavenumbers_.astype(str)``.
 
     Examples
     --------
