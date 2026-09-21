@@ -92,7 +92,7 @@ def test_openmodels_round_trip():
     model.coef_ = np.array([0.5, -1.0, 2.0])
     model.intercept_ = 10.0
     model.n_features_in_ = 3
-    model.feature_names_in_ = np.array(["1000", "1002", "1004"], dtype=object)
+    model.wavenumbers_ = np.array([1000.0, 1002.0, 1004.0])
 
     manager = openmodels.SerializationManager(
         openmodels.SklearnSerializer(custom_estimators=all_estimators)
@@ -107,3 +107,46 @@ def test_openmodels_round_trip():
     assert restored.ncomp == 2
     assert restored.min_w == 3
     assert restored.max_w == 15
+    np.testing.assert_array_equal(restored.wavenumbers_, model.wavenumbers_)
+
+
+def _r_shaped_model():
+    """A model with attributes set directly, as openmodels' deserializer does for
+    an R-exported file."""
+    model = NIRWiseLinearModel(fit_method="plsr", type="modified", ncomp=4)
+    model.x_means_ = np.array([1.0, 2.0, 3.0])
+    model.coef_ = np.array([0.5, -1.0, 2.0])
+    model.intercept_ = 10.0
+    model.n_features_in_ = 3
+    model.wavenumbers_ = np.array([1000.0, 1002.0, 1004.0])
+    return model
+
+
+def test_predict_emits_no_feature_name_warning():
+    """wavenumbers_ carries the coefficient axis precisely so scikit-learn's
+    feature-name check stays quiet: feature_names_in_ would warn here on every
+    call, since the model step is handed a plain array by the step before it."""
+    import warnings
+
+    model = _r_shaped_model()
+    assert not hasattr(model, "feature_names_in_")
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        model.predict(np.ones((2, 3)))
+
+    assert [str(w.message) for w in caught] == []
+
+
+def test_predict_accepts_dataframe_with_transformer_style_columns():
+    """Under set_output("pandas") the preceding chemotools transformer relabels the
+    columns "x0", "x1", ... . With feature_names_in_ set those would mismatch and
+    raise ValueError; with wavenumbers_ the call goes through."""
+    pd = pytest.importorskip("pandas")
+
+    model = _r_shaped_model()
+    X = pd.DataFrame(np.ones((2, 3)), columns=["x0", "x1", "x2"])
+
+    np.testing.assert_array_almost_equal(
+        model.predict(X), model.predict(np.ones((2, 3))), decimal=12
+    )
