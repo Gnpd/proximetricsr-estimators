@@ -94,24 +94,28 @@ def test_wire_shape_matches_openmodels_format():
             assert "attribute_types" in step, name
 
 
-def test_metadata_records_its_python_producers():
+def test_metadata_records_writer_and_packages():
     doc = json.loads(PIPELINE_JSON.read_text())
     metadata = doc["metadata"]
 
-    # producer_name is the package owning the *outermost* class (Pipeline), not
-    # the tool that wrote the file -- that is recorded in "source".
-    assert metadata["producer_name"] == "sklearn"
-    assert metadata["source"] == "proximetricsR"
-    assert set(metadata["producers"]) == {
+    assert metadata["openmodels_format_version"] == 3
+    # producer_* is the tool that wrote the file (ONNX convention), not the
+    # package owning the outermost class (Pipeline).
+    assert metadata["producer_name"] == "proximetricsR"
+    assert metadata["producer_version"]
+    # packages: every package contributing a class, at the versions whose
+    # attribute layouts the R exporter targets; openmodels warns on a mismatch.
+    assert set(metadata["packages"]) == {
         "sklearn",
         "chemotools",
         "proximetricsr_estimators",
     }
-    assert metadata["openmodels_format_version"] == 2
-    # absent on purpose: R cannot know which scikit-learn will load the file, and
-    # openmodels skips its version check when the field is missing rather than
-    # warning on a placeholder.
-    assert "producer_version" not in metadata
+    assert metadata["domain"] == "sklearn"
+    assert metadata["domain_version"] == metadata["packages"]["sklearn"]
+    assert "R" in metadata["dependency_versions"]
+    # pre-v3 ad-hoc fields are gone
+    for field in ("source", "proximetricsR_version", "r_version", "producers"):
+        assert field not in metadata, field
 
 
 def test_predict_emits_no_warnings(pipeline, spectra):
