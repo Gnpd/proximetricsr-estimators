@@ -10,7 +10,7 @@ together with [openmodels](https://github.com/Gnpd/openmodels):
 
 > **Note:** producing `exported_from_R.json` requires `export_sklearn_model()`,
 > which isn't in released proximetricsR yet — it's on an in-progress branch,
-> [`feat/openmodels-interop`](https://github.com/Gnpd/proximetricsR/tree/feat/openmodels-interop).
+> [`feat-sklearn-export`](https://github.com/Gnpd/proximetricsR/tree/feat-sklearn-export).
 
 Reconstructing a full pipeline also needs [`chemotools`](https://github.com/paucablop/chemotools)
 installed (`pip install chemotools`) — every preprocessing step in an exported
