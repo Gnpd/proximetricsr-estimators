@@ -16,7 +16,7 @@ chemotools 0.4.4 and proximetricsr-estimators 0.1.0.
 | `prep_smooth(w, algorithm = "moving-average")` | `chemotools.smooth.MeanFilter` | `window_length = w` (default `mode = "nearest"`) | ✅ ⚠️ Possible problem: moving-average edges  |
 | `prep_detrend(p)` | `chemotools.baseline.PolynomialCorrection` | `order = p`, `indices = None` (whole spectrum) | ✅ |
 | `prep_transform(to = "absorbance")` | `chemotools.physics.IntensityConversion` | `input_unit = "reflectance"`, `output_unit = "pseudoabsorbance"` (A = −log10 R) | ✅ Can't come after `prep_snv()`. |
-| `prep_transform(to = "reflectance")` | `chemotools.physics.IntensityConversion` | `input_unit = "pseudoabsorbance"`, `output_unit = "reflectance"` | ❌ chemotools supports it; the export blocks it on purpose, to match `proxiscout_write_model()`. |
+| `prep_transform(to = "reflectance")` | `chemotools.physics.IntensityConversion` | `input_unit = "pseudoabsorbance"`, `output_unit = "reflectance"` | ✅ Can't come after `prep_snv()`. |
 | `prep_wav_trim(band)` | `chemotools.feature_selection.RangeCut` | `start = min(band)`, `end = max(band)`, `x_axis = <input grid>`; indices are taken from R's recorded output grid | ✅ |
 | `prep_wav_trim(band, trim_constant_edges = TRUE)` | none (depends on the data) | — | ❌ |
 | `prep_resample(grid)` | `chemotools.adaptation.XAxisInterpolator` | `common_x_axis = seq(min, max, by = res)` or the NeoSpectra grid; method: natural spline in R vs `"cubic"` default ⚠️ | ❌ needs the x-axis passed at every `predict()` |

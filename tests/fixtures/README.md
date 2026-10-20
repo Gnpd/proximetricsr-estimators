@@ -8,6 +8,8 @@ truth for `tests/test_r_export_parity.py`.
 | `r_exported_pipeline.json` | Output of proximetricsR's `export_sklearn_model()` |
 | `r_reference_spectra.csv` | Held-out raw spectra (20 x 256), the `predict()` input |
 | `r_reference_predictions.csv` | The predictions **R** produced for those spectra |
+| `r_exported_pipeline_reflectance.json` | Same recipe with `prep_transform(to = "reflectance")` |
+| `r_reference_predictions_reflectance.csv` | The predictions **R** produced for that model, on the same spectra |
 
 ## Why they are committed rather than generated
 

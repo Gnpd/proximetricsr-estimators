@@ -19,6 +19,7 @@ import pytest
 
 FIXTURES = Path(__file__).parent / "fixtures"
 PIPELINE_JSON = FIXTURES / "r_exported_pipeline.json"
+REFLECTANCE_PIPELINE_JSON = FIXTURES / "r_exported_pipeline_reflectance.json"
 
 
 def _manager():
@@ -54,6 +55,29 @@ def r_predictions():
 
 def test_predictions_match_r(pipeline, spectra, r_predictions):
     """The whole point of the export: Python must reproduce R's numbers."""
+    predictions = pipeline.predict(spectra)
+
+    assert predictions.shape == r_predictions.shape
+    np.testing.assert_allclose(predictions, r_predictions, atol=1e-10)
+
+
+def test_reflectance_predictions_match_r(spectra):
+    """Same recipe with prep_transform(to = "reflectance"): the inverse
+    IntensityConversion direction, pseudoabsorbance -> reflectance."""
+    pipeline = _manager().load(str(REFLECTANCE_PIPELINE_JSON))
+    r_predictions = np.loadtxt(
+        FIXTURES / "r_reference_predictions_reflectance.csv",
+        delimiter=",",
+        skiprows=1,
+    )
+
+    conversion = pipeline.steps[1][1]
+    assert type(conversion).__name__ == "IntensityConversion"
+    assert (conversion.input_unit, conversion.output_unit) == (
+        "pseudoabsorbance",
+        "reflectance",
+    )
+
     predictions = pipeline.predict(spectra)
 
     assert predictions.shape == r_predictions.shape
