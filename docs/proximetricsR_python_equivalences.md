@@ -13,7 +13,7 @@ chemotools 0.4.4 and proximetricsr-estimators 0.1.0.
 | `prep_derivative(..., algorithm = "gap-segment")` | `chemotools.derivative.NorrisWilliams` | probably `gap_size = w`, `window_length = p` (segment), `deriv = m` ⚠️ not verified | ❌ `kernel_` isn't reproduced yet |
 | `prep_derivative(..., algorithm = "nwp")` | none (BUCHI NIRWise PLUS "DG" derivative) | — | ❌ |
 | `prep_smooth(w, p, algorithm = "savitzky-golay")` | `chemotools.smooth.SavitzkyGolayFilter` | `window_length = w`, `polyorder = p`; `kernel_` is computed in R with `sgf()` | ✅ A `RangeCut` is added after it (edges dropped in R). |
-| `prep_smooth(w, algorithm = "moving-average")` | `chemotools.smooth.MeanFilter` | `window_length = w` (default `mode = "nearest"`) | ✅ but see ⚠️ below |
+| `prep_smooth(w, algorithm = "moving-average")` | `chemotools.smooth.MeanFilter` | `window_length = w` (default `mode = "nearest"`) | ✅ ⚠️ Possible problem: moving-average edges  |
 | `prep_detrend(p)` | `chemotools.baseline.PolynomialCorrection` | `order = p`, `indices = None` (whole spectrum) | ✅ |
 | `prep_transform(to = "absorbance")` | `chemotools.physics.IntensityConversion` | `input_unit = "reflectance"`, `output_unit = "pseudoabsorbance"` (A = −log10 R) | ✅ Can't come after `prep_snv()`. |
 | `prep_transform(to = "reflectance")` | `chemotools.physics.IntensityConversion` | `input_unit = "pseudoabsorbance"`, `output_unit = "reflectance"` | ❌ chemotools supports it; the export blocks it on purpose, to match `proxiscout_write_model()`. |
